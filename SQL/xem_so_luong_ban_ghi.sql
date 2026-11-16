@@ -1,0 +1,12 @@
+USE QuanLyQuanNet;
+GO
+SELECT 'NhanVien' AS TenBang, COUNT(*) AS SoDong FROM NhanVien
+UNION ALL SELECT 'ChamCong', COUNT(*) FROM ChamCong
+UNION ALL SELECT 'KhuVucMay', COUNT(*) FROM KhuVucMay
+UNION ALL SELECT 'MayTinh', COUNT(*) FROM MayTinh
+UNION ALL SELECT 'KhachHang', COUNT(*) FROM KhachHang
+UNION ALL SELECT 'GiaoDichNapTien', COUNT(*) FROM GiaoDichNapTien
+UNION ALL SELECT 'PhienSuDung', COUNT(*) FROM PhienSuDung
+UNION ALL SELECT 'DichVu', COUNT(*) FROM DichVu
+UNION ALL SELECT 'HoaDon', COUNT(*) FROM HoaDon
+UNION ALL SELECT 'ChiTietHoaDon', COUNT(*) FROM ChiTietHoaDon;

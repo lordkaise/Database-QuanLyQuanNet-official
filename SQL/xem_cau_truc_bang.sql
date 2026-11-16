@@ -1,0 +1,10 @@
+EXEC sp_help 'NhanVien';
+EXEC sp_help 'ChamCong';
+EXEC sp_help 'KhuVucMay';
+EXEC sp_help 'MayTinh';
+EXEC sp_help 'KhachHang';
+EXEC sp_help 'GiaoDichNapTien';
+EXEC sp_help 'PhienSuDung';
+EXEC sp_help 'DichVu';
+EXEC sp_help 'HoaDon';
+EXEC sp_help 'ChiTietHoaDon';

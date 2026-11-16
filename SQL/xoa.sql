@@ -1,0 +1,14 @@
+USE QuanLyQuanNet;
+GO
+
+DELETE FROM MayTinh;
+DELETE FROM DichVu;
+DELETE FROM KhachHang;
+DELETE FROM KhuVucMay;
+DELETE FROM NhanVien;
+DELETE FROM ChamCong;
+DELETE FROM ChiTietHoaDon;
+DELETE FROM GiaoDichNapTien;
+DELETE FROM HoaDon;
+DELETE FROM PhienSuDung;
+GO

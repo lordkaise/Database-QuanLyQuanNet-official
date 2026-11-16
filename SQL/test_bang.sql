@@ -1,0 +1,6 @@
+USE QuanLyQuanNet;
+GO
+
+ALTER TABLE KhachHang
+ADD SDT VARCHAR(15);
+GO
