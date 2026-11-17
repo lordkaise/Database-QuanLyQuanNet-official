@@ -131,7 +131,7 @@ class QuanLyNhanVien(QWidget):
                 SELECT MaNV, TenNV, NgaySinh, DiaChi,
                        GioiTinh, MucLuong, ChucVu, SDT
                 FROM NhanVien
-                ORDER BY MaNV
+                ORDER BY MaNV DESC
             """)
 
             rows = cursor.fetchall()
@@ -354,7 +354,7 @@ class QuanLyNhanVien(QWidget):
                        GioiTinh, MucLuong, ChucVu, SDT
                 FROM NhanVien
                 WHERE MaNV LIKE ? OR TenNV LIKE ?
-                ORDER BY MaNV
+                ORDER BY MaNV DESC
             """, (
                 "%" + tu_khoa + "%",
                 "%" + tu_khoa + "%"

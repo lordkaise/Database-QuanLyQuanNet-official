@@ -124,7 +124,7 @@ class QuanLyKhachHang(QWidget):
             cursor.execute("""
                 SELECT ID, HoTen, SDT, LoaiTK, TongTienDaNap, SoDu
                 FROM KhachHang
-                ORDER BY ID
+                ORDER BY ID DESC
             """)
 
             rows = cursor.fetchall()
@@ -320,7 +320,7 @@ class QuanLyKhachHang(QWidget):
                 WHERE ID LIKE ?
                    OR HoTen LIKE ?
                    OR SDT LIKE ?
-                ORDER BY ID
+                ORDER BY ID DESC
             """, (
                 "%" + tu_khoa + "%",
                 "%" + tu_khoa + "%",

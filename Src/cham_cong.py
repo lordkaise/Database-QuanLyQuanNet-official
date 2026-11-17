@@ -103,7 +103,7 @@ class ChamCong(QWidget):
             cursor.execute("""
                 SELECT MaNV, TenNV
                 FROM NhanVien
-                ORDER BY MaNV
+                ORDER BY MaNV 
             """)
 
             for ma_nv, ten_nv in cursor.fetchall():

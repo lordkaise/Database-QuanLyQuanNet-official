@@ -1,4 +1,3 @@
-
 import sys
 from datetime import datetime
 from decimal import Decimal, ROUND_HALF_UP
@@ -21,8 +20,6 @@ class PhienSuDung(QWidget):
 
         layout = QVBoxLayout()
         form = QFormLayout()
-
-        self.ma = QLineEdit()
 
         # Chọn khách hàng
         self.khach_hang = QComboBox()
@@ -52,7 +49,6 @@ class PhienSuDung(QWidget):
             "dd/MM/yyyy HH:mm:ss"
         )
 
-        form.addRow("Mã phiên:", self.ma)
         form.addRow("Khách hàng:", self.khach_hang)
         form.addRow("Máy tính:", self.may_tinh)
         form.addRow("Thời điểm bắt đầu:", self.thoi_gian)
@@ -124,7 +120,7 @@ class PhienSuDung(QWidget):
         try:
             self.khach_hang.clear()
             self.may_tinh.clear()
-            
+
             cursor.execute("""
                 SELECT ID, HoTen
                 FROM KhachHang
@@ -168,17 +164,29 @@ class PhienSuDung(QWidget):
 
         return combo.currentData()
 
+    # Tự động tạo mã phiên theo dạng PS001, PS002, PS003...
+    def tao_ma_phien(self, cursor):
+        # Khóa vùng dữ liệu để hạn chế việc hai thao tác
+        # tạo phiên cùng lúc lấy trùng một mã.
+        cursor.execute("""
+            SELECT ISNULL(
+                MAX(TRY_CONVERT(INT, SUBSTRING(MaPhien, 3, LEN(MaPhien)))),
+                0
+            )
+            FROM PhienSuDung WITH (UPDLOCK, HOLDLOCK)
+            WHERE MaPhien LIKE 'PS[0-9]%'
+              AND TRY_CONVERT(
+                    INT, SUBSTRING(MaPhien, 3, LEN(MaPhien))
+                  ) IS NOT NULL
+        """)
+
+        so_lon_nhat = cursor.fetchone()[0] or 0
+        return f"PS{int(so_lon_nhat) + 1:03d}"
+
     # Bắt đầu phiên sử dụng
     def bat_dau(self):
-        ma = self.ma.text().strip()
         id_kh = self.lay_ma_da_chon(self.khach_hang)
         ma_mt = self.lay_ma_da_chon(self.may_tinh)
-
-        if not ma:
-            QMessageBox.warning(
-                self, "Lỗi", "Chưa nhập mã phiên!"
-            )
-            return
 
         if id_kh is None:
             QMessageBox.warning(
@@ -267,6 +275,9 @@ class PhienSuDung(QWidget):
                 )
                 return
 
+            # Tự động sinh mã phiên ngay trước khi thêm dữ liệu
+            ma = self.tao_ma_phien(cursor)
+
             # Thêm phiên sử dụng
             cursor.execute("""
                 INSERT INTO PhienSuDung
@@ -289,10 +300,10 @@ class PhienSuDung(QWidget):
             self.tai_combo_box()
 
             QMessageBox.information(
-                self, "Thông báo", "Bắt đầu phiên thành công!"
+                self, "Thông báo",
+                f"Bắt đầu phiên thành công!\nMã phiên: {ma}"
             )
 
-            self.ma.clear()
             self.thoi_gian.setDateTime(
                 QDateTime.currentDateTime()
             )
@@ -531,7 +542,7 @@ class PhienSuDung(QWidget):
                    OR ps.ID LIKE ?
                    OR kh.HoTen LIKE ?
                    OR ps.MaMT LIKE ?
-                ORDER BY ps.ThoiGianBatDau DESC
+                ORDER BY ps.MaPhien DESC
             """,
                 "%" + tu_khoa + "%",
                 "%" + tu_khoa + "%",
