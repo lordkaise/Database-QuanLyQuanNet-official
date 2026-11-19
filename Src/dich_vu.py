@@ -109,7 +109,7 @@ class QuanLyDichVu(QWidget):
             cursor.execute("""
                 SELECT MaDV, TenDV, PhanLoai, GiaTien, SoLuong
                 FROM DichVu
-                ORDER BY MaDV
+                ORDER BY MaDV DESC
             """)
 
             rows = cursor.fetchall()
@@ -308,9 +308,10 @@ class QuanLyDichVu(QWidget):
             cursor.execute("""
                 SELECT MaDV, TenDV, PhanLoai, GiaTien, SoLuong
                 FROM DichVu
-                WHERE MaDV LIKE ? OR TenDV LIKE ?
-                ORDER BY MaDV
+                WHERE MaDV LIKE ? OR TenDV LIKE ? OR Phanloai LIKE ?
+                ORDER BY MaDV DESC
             """, (
+                "%" + tu_khoa + "%",
                 "%" + tu_khoa + "%",
                 "%" + tu_khoa + "%"
             ))

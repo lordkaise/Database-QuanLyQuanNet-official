@@ -1,4 +1,3 @@
-
 import sys
 from PyQt6.QtWidgets import (
     QApplication, QWidget, QLabel, QLineEdit,
@@ -31,6 +30,9 @@ class QuanLyKhachHang(QWidget):
         form = QFormLayout()
 
         self.ma = QLineEdit()
+        self.ma.setReadOnly(True)
+        self.ma.setPlaceholderText("Mã khách hàng được tự động tạo")
+
         self.ten = QLineEdit()
         self.sdt = QLineEdit()
         self.loai_tk = QLineEdit()
@@ -151,12 +153,29 @@ class QuanLyKhachHang(QWidget):
                     row, col, QTableWidgetItem(str(value))
                 )
 
-    # Kiểm tra dữ liệu
+    # Tự động tạo mã khách hàng theo dạng KH001, KH002, KH003...
+    def tao_ma_khach_hang(self, cursor):
+        cursor.execute("""
+            SELECT ISNULL(
+                MAX(TRY_CONVERT(INT, SUBSTRING(ID, 3, LEN(ID)))),
+                0
+            )
+            FROM KhachHang WITH (UPDLOCK, HOLDLOCK)
+            WHERE ID LIKE 'KH[0-9]%'
+              AND TRY_CONVERT(
+                    INT, SUBSTRING(ID, 3, LEN(ID))
+                  ) IS NOT NULL
+        """)
+
+        so_lon_nhat = cursor.fetchone()[0] or 0
+        return f"KH{int(so_lon_nhat) + 1:03d}"
+
+    # Kiểm tra dữ liệu nhập
     def kiem_tra(self):
-        if not self.ma.text().strip() or not self.ten.text().strip():
+        if not self.ten.text().strip():
             QMessageBox.warning(
                 self, "Thông báo",
-                "Vui lòng nhập mã và họ tên khách hàng!"
+                "Vui lòng nhập họ tên khách hàng!"
             )
             return False
 
@@ -183,33 +202,43 @@ class QuanLyKhachHang(QWidget):
         if not self.kiem_tra():
             return
 
+        conn = None
+
         try:
             conn = get_connection()
             cursor = conn.cursor()
+
+            # Tự động sinh mã khách hàng
+            ma_moi = self.tao_ma_khach_hang(cursor)
 
             cursor.execute("""
                 INSERT INTO KhachHang
                 (ID, HoTen, SDT, LoaiTK, TongTienDaNap, SoDu)
                 VALUES (?, ?, ?, ?, 0, 0)
             """, (
-                self.ma.text().strip(),
+                ma_moi,
                 self.ten.text().strip(),
                 self.sdt.text().strip(),
                 self.loai_tk.text().strip()
             ))
 
             conn.commit()
-            conn.close()
 
             QMessageBox.information(
                 self, "Thông báo",
-                "Thêm khách hàng thành công!"
+                f"Thêm khách hàng thành công!\nMã khách hàng: {ma_moi}"
             )
 
             self.lam_moi()
 
         except Exception as e:
+            if conn is not None:
+                conn.rollback()
             QMessageBox.critical(self, "Lỗi", str(e))
+
+        finally:
+            if conn is not None:
+                conn.close()
 
     # Chọn khách hàng trên bảng
     def chon_khach_hang(self, row, col):
@@ -219,8 +248,6 @@ class QuanLyKhachHang(QWidget):
         self.loai_tk.setText(self.bang.item(row, 3).text())
         self.tong_tien.setText(self.bang.item(row, 4).text())
         self.so_du.setText(self.bang.item(row, 5).text())
-
-        self.ma.setReadOnly(True)
 
     # Sửa khách hàng
     def sua_khach_hang(self):
@@ -233,6 +260,8 @@ class QuanLyKhachHang(QWidget):
 
         if not self.kiem_tra():
             return
+
+        conn = None
 
         try:
             conn = get_connection()
@@ -250,7 +279,6 @@ class QuanLyKhachHang(QWidget):
             ))
 
             conn.commit()
-            conn.close()
 
             QMessageBox.information(
                 self, "Thông báo", "Cập nhật thành công!"
@@ -259,7 +287,13 @@ class QuanLyKhachHang(QWidget):
             self.lam_moi()
 
         except Exception as e:
+            if conn is not None:
+                conn.rollback()
             QMessageBox.critical(self, "Lỗi", str(e))
+
+        finally:
+            if conn is not None:
+                conn.close()
 
     # Xóa khách hàng
     def xoa_khach_hang(self):
@@ -282,6 +316,8 @@ class QuanLyKhachHang(QWidget):
         if hoi == QMessageBox.StandardButton.No:
             return
 
+        conn = None
+
         try:
             conn = get_connection()
             cursor = conn.cursor()
@@ -291,7 +327,6 @@ class QuanLyKhachHang(QWidget):
             )
 
             conn.commit()
-            conn.close()
 
             QMessageBox.information(
                 self, "Thông báo", "Xóa khách hàng thành công!"
@@ -300,11 +335,17 @@ class QuanLyKhachHang(QWidget):
             self.lam_moi()
 
         except Exception as e:
+            if conn is not None:
+                conn.rollback()
             QMessageBox.critical(
                 self, "Không thể xóa",
                 "Khách hàng có thể đã phát sinh giao dịch, "
                 "phiên sử dụng hoặc hóa đơn.\n" + str(e)
             )
+
+        finally:
+            if conn is not None:
+                conn.close()
 
     # Tìm kiếm theo mã, tên hoặc số điện thoại
     def tim_khach_hang(self):
@@ -338,7 +379,10 @@ class QuanLyKhachHang(QWidget):
     # Làm mới form
     def lam_moi(self):
         self.ma.clear()
-        self.ma.setReadOnly(False)
+        self.ma.setReadOnly(True)
+        self.ma.setPlaceholderText(
+            "Mã khách hàng được tự động tạo"
+        )
 
         self.ten.clear()
         self.sdt.clear()

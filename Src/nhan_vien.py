@@ -353,9 +353,10 @@ class QuanLyNhanVien(QWidget):
                 SELECT MaNV, TenNV, NgaySinh, DiaChi,
                        GioiTinh, MucLuong, ChucVu, SDT
                 FROM NhanVien
-                WHERE MaNV LIKE ? OR TenNV LIKE ?
+                WHERE MaNV LIKE ? OR TenNV LIKE ? OR SDT LIKE ?
                 ORDER BY MaNV DESC
             """, (
+                "%" + tu_khoa + "%",
                 "%" + tu_khoa + "%",
                 "%" + tu_khoa + "%"
             ))

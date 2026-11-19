@@ -55,6 +55,29 @@ class BaoCaoDoanhThu(QWidget):
 
         layout.addLayout(form)
 
+        # Tổng hợp doanh thu theo nguồn
+        tong_theo_nguon = QHBoxLayout()
+
+        self.doanh_thu_phien = QLabel(
+            "Doanh thu phiên sử dụng: 0 VNĐ"
+        )
+        self.doanh_thu_phien.setStyleSheet(
+            "font-size: 16px; font-weight: bold; "
+            "padding: 10px; border: 1px solid #999; border-radius: 5px;"
+        )
+
+        self.doanh_thu_hoa_don = QLabel(
+            "Doanh thu hóa đơn dịch vụ: 0 VNĐ"
+        )
+        self.doanh_thu_hoa_don.setStyleSheet(
+            "font-size: 16px; font-weight: bold; "
+            "padding: 10px; border: 1px solid #999; border-radius: 5px;"
+        )
+
+        tong_theo_nguon.addWidget(self.doanh_thu_phien)
+        tong_theo_nguon.addWidget(self.doanh_thu_hoa_don)
+        layout.addLayout(tong_theo_nguon)
+
         # Bảng doanh thu
         self.bang = QTableWidget()
         self.bang.setColumnCount(4)
@@ -157,12 +180,19 @@ class BaoCaoDoanhThu(QWidget):
             self.bang.setRowCount(len(rows))
 
             tong_tien = 0
+            tong_phien = 0
+            tong_hoa_don = 0
 
             for i, row in enumerate(rows):
                 nguon, ma, thoi_diem, so_tien = row
 
                 so_tien = so_tien or 0
                 tong_tien += so_tien
+
+                if nguon == "Phiên sử dụng":
+                    tong_phien += so_tien
+                elif nguon == "Hóa đơn dịch vụ":
+                    tong_hoa_don += so_tien
 
                 values = [
                     nguon,
@@ -178,6 +208,13 @@ class BaoCaoDoanhThu(QWidget):
                     )
 
             self.bang.resizeColumnsToContents()
+
+            self.doanh_thu_phien.setText(
+                f"Doanh thu phiên sử dụng: {tong_phien:,.0f} VNĐ"
+            )
+            self.doanh_thu_hoa_don.setText(
+                f"Doanh thu hóa đơn dịch vụ: {tong_hoa_don:,.0f} VNĐ"
+            )
 
             self.tong.setText(
                 f"Tổng doanh thu: {tong_tien:,.0f} VNĐ"
@@ -422,11 +459,18 @@ class BaoCaoDoanhThu(QWidget):
                 ])
 
                 tong_tien = 0
+                tong_phien = 0
+                tong_hoa_don = 0
 
                 for row in self.du_lieu:
                     nguon, ma, thoi_diem, so_tien = row
                     so_tien = so_tien or 0
                     tong_tien += so_tien
+
+                    if nguon == "Phiên sử dụng":
+                        tong_phien += so_tien
+                    elif nguon == "Hóa đơn dịch vụ":
+                        tong_hoa_don += so_tien
 
                     writer.writerow([
                         nguon,
@@ -436,6 +480,18 @@ class BaoCaoDoanhThu(QWidget):
                     ])
 
                 writer.writerow([])
+                writer.writerow([
+                    "Doanh thu phiên sử dụng",
+                    "",
+                    "",
+                    tong_phien
+                ])
+                writer.writerow([
+                    "Doanh thu hóa đơn dịch vụ",
+                    "",
+                    "",
+                    tong_hoa_don
+                ])
                 writer.writerow([
                     "Tổng doanh thu",
                     "",
